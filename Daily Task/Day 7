@@ -1,0 +1,168 @@
+
+import java.util.*;
+
+public class LibraryWaitlist {
+
+    static class Book {
+        int id;
+        String title;
+
+        Book(int id, String title) {
+            this.id = id;
+            this.title = title;
+        }
+
+        @Override
+        public String toString() {
+            return id + " - " + title;
+        }
+    }
+
+    static class Request {
+        String name;
+        boolean faculty;
+        long order;
+
+        Request(String name, boolean faculty, long order) {
+            this.name = name;
+            this.faculty = faculty;
+            this.order = order;
+        }
+
+        @Override
+        public String toString() {
+            return name + (faculty ? " (Faculty)" : " (Student)");
+        }
+    }
+
+    public static void main(String[] args) {
+
+        // 1. ArrayList: catalogue
+        ArrayList<Book> catalogue = new ArrayList<>();
+        catalogue.add(new Book(101, "Java Basics"));
+        catalogue.add(new Book(102, "Data Structures"));
+        catalogue.add(new Book(103, "Database Systems"));
+
+        System.out.println("CATALOGUE:");
+        for (Book book : catalogue) {
+            System.out.println(book);
+        }
+
+        // 2. LinkedHashSet: unique book IDs
+        LinkedHashSet<Integer> bookIds = new LinkedHashSet<>();
+        bookIds.add(101);
+        bookIds.add(102);
+        bookIds.add(101); // duplicate ignored
+        bookIds.add(103);
+
+        System.out.println("\nUNIQUE BOOK IDS: " + bookIds);
+
+        // 3. ArrayDeque: FIFO waitlist
+        ArrayDeque<String> waitlist = new ArrayDeque<>();
+        waitlist.offerLast("Arun");
+        waitlist.offerLast("Bala");
+        waitlist.offerLast("Charan");
+
+        System.out.println("\nFIFO WAITLIST:");
+        while (!waitlist.isEmpty()) {
+            System.out.println("Next: " + waitlist.pollFirst());
+        }
+
+        // 4. PriorityQueue: faculty before students
+        PriorityQueue<Request> priorityQueue =
+                new PriorityQueue<>(
+                    Comparator.comparing((Request r) -> !r.faculty)
+                              .thenComparingLong(r -> r.order)
+                );
+
+        priorityQueue.offer(new Request("Arun", false, 1));
+        priorityQueue.offer(new Request("Bala", true, 2));
+        priorityQueue.offer(new Request("Charan", false, 3));
+        priorityQueue.offer(new Request("Divya", true, 4));
+
+        System.out.println("\nPRIORITY WAITLIST:");
+        while (!priorityQueue.isEmpty()) {
+            System.out.println("Serving: " + priorityQueue.poll());
+        }
+
+        // 5. Iterator.remove(): remove overdue books
+        ArrayList<Book> borrowedBooks = new ArrayList<>();
+        borrowedBooks.add(new Book(201, "Java Basics"));
+        borrowedBooks.add(new Book(202, "Operating Systems"));
+        borrowedBooks.add(new Book(203, "Computer Networks"));
+
+        Set<Integer> overdueIds = Set.of(201, 203);
+
+        Iterator<Book> iterator = borrowedBooks.iterator();
+        while (iterator.hasNext()) {
+            Book book = iterator.next();
+
+            if (overdueIds.contains(book.id)) {
+                iterator.remove();
+            }
+        }
+
+        System.out.println("\nBOOKS REMAINING AFTER OVERDUE REMOVAL:");
+        for (Book book : borrowedBooks) {
+            System.out.println(book);
+        }
+
+        // 6. ArrayList vs LinkedList performance
+        compareCollections();
+    }
+
+    static void compareCollections() {
+        final int N = 20000;
+
+        ArrayList<Integer> arrayList = new ArrayList<>();
+        LinkedList<Integer> linkedList = new LinkedList<>();
+
+        for (int i = 0; i < N; i++) {
+            arrayList.add(i);
+            linkedList.add(i);
+        }
+
+        // get(i) performance
+        long start = System.nanoTime();
+        long sum1 = 0;
+
+        for (int i = 0; i < N; i++) {
+            sum1 += arrayList.get(i);
+        }
+
+        long arrayGetTime = System.nanoTime() - start;
+
+        start = System.nanoTime();
+        long sum2 = 0;
+
+        for (int i = 0; i < N; i++) {
+            sum2 += linkedList.get(i);
+        }
+
+        long linkedGetTime = System.nanoTime() - start;
+
+        // Insert at index 0
+        start = System.nanoTime();
+        for (int i = 0; i < 5000; i++) {
+            arrayList.add(0, -i);
+        }
+        long arrayInsertTime = System.nanoTime() - start;
+
+        start = System.nanoTime();
+        for (int i = 0; i < 5000; i++) {
+            linkedList.add(0, -i);
+        }
+        long linkedInsertTime = System.nanoTime() - start;
+
+        System.out.println("\nPERFORMANCE COMPARISON:");
+        System.out.println("ArrayList get(i): " + arrayGetTime + " ns");
+        System.out.println("LinkedList get(i): " + linkedGetTime + " ns");
+        System.out.println("ArrayList front inserts: " + arrayInsertTime + " ns");
+        System.out.println("LinkedList front inserts: " + linkedInsertTime + " ns");
+
+        // Prevent unused-result issues in some optimizations.
+        System.out.println("Checksums: " + sum1 + ", " + sum2);
+    }
+}
+
+
