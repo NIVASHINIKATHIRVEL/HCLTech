@@ -1,0 +1,114 @@
+
+package payment;
+
+public abstract class Payment {
+
+    protected double amount;
+
+    public Payment(double amount) {
+        if (!Double.isFinite(amount) || amount <= 0) {
+            throw new IllegalArgumentException(
+                "Amount must be positive and finite.");
+        }
+        this.amount = amount;
+    }
+
+    public abstract void pay();
+
+    // Overloaded pay() methods
+    public void pay(String reference) {
+        System.out.println("Reference: " + reference);
+        pay();
+    }
+
+    public void pay(double discountPercent, String reference) {
+        if (!Double.isFinite(discountPercent)
+                || discountPercent < 0 || discountPercent > 100) {
+            throw new IllegalArgumentException("Invalid discount.");
+        }
+
+        double finalAmount = amount * (1 - discountPercent / 100.0);
+        System.out.println("Reference: " + reference);
+        System.out.printf("Discounted amount: Rs. %.2f%n", finalAmount);
+    }
+}
+
+
+
+package payment;
+
+public interface Refundable {
+    void refund(double amount);
+}
+
+
+
+
+package payment;
+
+public class CardPayment extends Payment implements Refundable {
+
+    public CardPayment(double amount) {
+        super(amount);
+    }
+
+    @Override
+    public void pay() {
+        System.out.printf("Paid Rs. %.2f using Card.%n", amount);
+    }
+
+    @Override
+    public void refund(double refundAmount) {
+        if (!Double.isFinite(refundAmount)
+                || refundAmount <= 0 || refundAmount > amount) {
+            throw new IllegalArgumentException("Invalid refund amount.");
+        }
+        System.out.printf("Card refund: Rs. %.2f%n", refundAmount);
+    }
+}
+
+
+
+package payment;
+
+public class UPIPayment extends Payment implements Refundable {
+
+    public UPIPayment(double amount) {
+        super(amount);
+    }
+
+    @Override
+    public void pay() {
+        System.out.printf("Paid Rs. %.2f using UPI.%n", amount);
+    }
+
+    @Override
+    public void refund(double refundAmount) {
+        if (!Double.isFinite(refundAmount)
+                || refundAmount <= 0 || refundAmount > amount) {
+            throw new IllegalArgumentException("Invalid refund amount.");
+        }
+        System.out.printf("UPI refund: Rs. %.2f%n", refundAmount);
+    }
+}
+
+
+
+package payment;
+
+public class Main {
+
+    public static void main(String[] args) {
+
+        Payment card = new CardPayment(2000);
+        Payment upi = new UPIPayment(1500);
+        Payment cash = new CashPayment(500);
+
+        card.pay();
+        upi.pay("UPI-TXN-101");
+        cash.pay(10, "CASH-101");
+
+        Refundable refundable = (Refundable) card;
+        refundable.refund(500);
+    }
+}
